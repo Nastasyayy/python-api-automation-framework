@@ -1,8 +1,11 @@
+import allure
 from http import HTTPStatus
-
 from src.api.auth import login_user, get_configured_credentials
 
 
+@allure.feature("Authentication API")
+@allure.story("User Login")
+@allure.severity(allure.severity_level.BLOCKER)
 def test_login_user_success(api_session):
     """Verify that a configured user can login successfully and receive an auth token."""
 

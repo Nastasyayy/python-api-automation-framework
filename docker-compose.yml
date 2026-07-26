@@ -6,6 +6,9 @@ services:
     build: .
     # The name and tag that will be assigned to the compiled image
     image: qa-sandbox-tests:latest
+    # Mount a local directory to persist test results outside the container
+    volumes:
+      - ./allure-results:/app/allure-results
     # Inject environment variables into the running container
     environment:
       - BASE_URL=${BASE_URL}

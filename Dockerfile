@@ -23,4 +23,4 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # 8. Команда по умолчанию для запуска тестов при старте контейнера
-CMD ["pytest", "-v"]
+CMD ["pytest", "-v", "--alluredir=allure-results"]

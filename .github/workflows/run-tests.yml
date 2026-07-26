@@ -11,6 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       # 1. Clone the repository code onto the GitHub runner machine
@@ -30,16 +32,26 @@ jobs:
           PASSWORD: ${{ secrets.QA_SANDBOX_PASSWORD }}
         run: |
           docker run --rm \
+            -v ${{ github.workspace }}/allure-results:/app/allure-results \
             -e BASE_URL="$BASE_URL" \
             -e GRAPHQL_URL="$GRAPHQL_URL" \
             -e USERNAME="$USERNAME" \
             -e PASSWORD="$PASSWORD" \
             qa-sandbox-tests
 
-      # 4. Optional: Archive and upload pytest cache logs as artifacts if the tests fail
-      - name: Upload test artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
+      # 4. Generate the Allure Report and manage the test run history
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
         with:
-          name: pytest-logs
-          path: .pytest_cache/
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      # 5. Deploy the generated Allure Report directly to GitHub Pages for static hosting
+      - name: Deploy Allure Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-history
