@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  autotests:
+    # Automatically build the Dockerfile located in the current directory
+    build: .
+    # The name and tag that will be assigned to the compiled image
+    image: qa-sandbox-tests:latest
+    # Inject environment variables into the running container
+    environment:
+      - BASE_URL=${BASE_URL}
+      - GRAPHQL_URL=${GRAPHQL_URL}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}

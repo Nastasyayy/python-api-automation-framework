@@ -1,0 +1,45 @@
+name: Automated API Tests
+run-name: Run framework tests in Docker
+
+# Triggers: execute on push or pull request events for main and master branches
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clone the repository code onto the GitHub runner machine
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Build the Docker image using the project's Dockerfile
+      - name: Build Docker image
+        run: docker build -t qa-sandbox-tests .
+
+      # 3. Run the container and inject configuration and encrypted GitHub secrets
+      - name: Run tests in Docker container
+        env:
+          BASE_URL: https://api.qasandbox.org
+          GRAPHQL_URL: https://api.qasandbox.org/graphql
+          USERNAME: ${{ secrets.QA_SANDBOX_USERNAME }}
+          PASSWORD: ${{ secrets.QA_SANDBOX_PASSWORD }}
+        run: |
+          docker run --rm \
+            -e BASE_URL="$BASE_URL" \
+            -e GRAPHQL_URL="$GRAPHQL_URL" \
+            -e USERNAME="$USERNAME" \
+            -e PASSWORD="$PASSWORD" \
+            qa-sandbox-tests
+
+      # 4. Optional: Archive and upload pytest cache logs as artifacts if the tests fail
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-logs
+          path: .pytest_cache/
