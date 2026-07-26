@@ -1,4 +1,6 @@
 import requests
+from typing import Any
+from src.utils.allure_logger import log_allure_http
 
 
 class CustomAPISession(requests.Session):
@@ -6,11 +8,12 @@ class CustomAPISession(requests.Session):
 
     def __init__(self, base_url: str):
         super().__init__()
-        # Remove any trailing slashes to avoid double slashes during concatenation
         self.base_url = base_url.rstrip("/")
 
-    def request(self, method, url, *args, **kwargs):
-        # If the URL is relative (doesn't start with http/https), prepend the base URL and api path
+    def request(
+        self, method: str, url: str, *args: Any, **kwargs: Any
+    ) -> requests.Response:
         if not url.startswith(("http://", "https://")):
             url = f"{self.base_url}/api/{url.lstrip('/')}"
-        return super().request(method, url, *args, **kwargs)
+
+        return log_allure_http(super().request, method, url, *args, **kwargs)
