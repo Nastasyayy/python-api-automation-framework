@@ -1,5 +1,5 @@
 import requests
-from typing import Any
+from typing import Any, Optional, Dict
 from src.utils.allure_logger import log_allure_http
 
 
@@ -9,6 +9,7 @@ class CustomAPISession(requests.Session):
     def __init__(self, base_url: str):
         super().__init__()
         self.base_url = base_url.rstrip("/")
+        self.scribe_credentials: Optional[Dict[str, str]] = None
 
     def request(
         self, method: str, url: str, *args: Any, **kwargs: Any

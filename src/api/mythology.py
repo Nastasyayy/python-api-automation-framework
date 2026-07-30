@@ -45,80 +45,73 @@ def _create_auth_headers(token: str) -> Dict[str, str]:
 
 
 # API request methods (REST)
-def get_mythology_list(
-    session: CustomAPISession,
-    query: Optional[GetMythologyListQueryParams] = None,
-) -> requests.Response:
-    return session.get("mythology", params=query)
+class MythologyAPIClient:
+    def __init__(self, session: CustomAPISession):
+        self.session = session
 
+    def get_mythology_list(
+        self,
+        query: Optional[GetMythologyListQueryParams] = None,
+    ) -> requests.Response:
+        return self.session.get("mythology", params=query)
 
-def get_mythology_by_id(
-    session: CustomAPISession, entity_id: int
-) -> requests.Response:
-    return session.get(f"mythology/{entity_id}")
+    def get_mythology_by_id(self, entity_id: int) -> requests.Response:
+        return self.session.get(f"mythology/{entity_id}")
 
+    def create_mythology_entity_without_auth(
+        self, payload: CreateMythologyPayload
+    ) -> requests.Response:
+        return self.session.post("mythology", json=payload)
 
-def create_mythology_entity_without_auth(
-    session: CustomAPISession, payload: CreateMythologyPayload
-) -> requests.Response:
-    return session.post("mythology", json=payload)
+    def create_mythology_entity(
+        self, token: str, payload: CreateMythologyPayload
+    ) -> requests.Response:
+        return self.session.post(
+            "mythology", json=payload, headers=_create_auth_headers(token)
+        )
 
+    def replace_mythology_entity(
+        self,
+        token: str,
+        entity_id: int,
+        payload: UpdateMythologyPayload,
+    ) -> requests.Response:
+        return self.session.put(
+            f"mythology/{entity_id}",
+            json=payload,
+            headers=_create_auth_headers(token),
+        )
 
-def create_mythology_entity(
-    session: CustomAPISession, token: str, payload: CreateMythologyPayload
-) -> requests.Response:
-    return session.post(
-        "mythology", json=payload, headers=_create_auth_headers(token)
-    )
+    def replace_mythology_entity_without_auth(
+        self, entity_id: int, payload: UpdateMythologyPayload
+    ) -> requests.Response:
+        return self.session.put(f"mythology/{entity_id}", json=payload)
 
+    def patch_mythology_entity(
+        self,
+        token: str,
+        entity_id: int,
+        payload: PatchMythologyPayload,
+    ) -> requests.Response:
+        return self.session.patch(
+            f"mythology/{entity_id}",
+            json=payload,
+            headers=_create_auth_headers(token),
+        )
 
-def replace_mythology_entity(
-    session: CustomAPISession,
-    token: str,
-    entity_id: int,
-    payload: UpdateMythologyPayload,
-) -> requests.Response:
-    return session.put(
-        f"mythology/{entity_id}",
-        json=payload,
-        headers=_create_auth_headers(token),
-    )
+    def patch_mythology_entity_without_auth(
+        self, entity_id: int, payload: PatchMythologyPayload
+    ) -> requests.Response:
+        return self.session.patch(f"mythology/{entity_id}", json=payload)
 
+    def delete_mythology_entity(
+        self, token: str, entity_id: int
+    ) -> requests.Response:
+        return self.session.delete(
+            f"mythology/{entity_id}", headers=_create_auth_headers(token)
+        )
 
-def replace_mythology_entity_without_auth(
-    session: CustomAPISession, entity_id: int, payload: UpdateMythologyPayload
-) -> requests.Response:
-    return session.put(f"mythology/{entity_id}", json=payload)
-
-
-def patch_mythology_entity(
-    session: CustomAPISession,
-    token: str,
-    entity_id: int,
-    payload: PatchMythologyPayload,
-) -> requests.Response:
-    return session.patch(
-        f"mythology/{entity_id}",
-        json=payload,
-        headers=_create_auth_headers(token),
-    )
-
-
-def patch_mythology_entity_without_auth(
-    session: CustomAPISession, entity_id: int, payload: PatchMythologyPayload
-) -> requests.Response:
-    return session.patch(f"mythology/{entity_id}", json=payload)
-
-
-def delete_mythology_entity(
-    session: CustomAPISession, token: str, entity_id: int
-) -> requests.Response:
-    return session.delete(
-        f"mythology/{entity_id}", headers=_create_auth_headers(token)
-    )
-
-
-def delete_mythology_entity_without_auth(
-    session: CustomAPISession, entity_id: int
-) -> requests.Response:
-    return session.delete(f"mythology/{entity_id}")
+    def delete_mythology_entity_without_auth(
+        self, entity_id: int
+    ) -> requests.Response:
+        return self.session.delete(f"mythology/{entity_id}")

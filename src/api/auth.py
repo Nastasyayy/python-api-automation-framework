@@ -61,31 +61,29 @@ def create_unique_credentials_from_env() -> AuthCredentials:
     return create_unique_credentials(password)
 
 
-def register_user(
-    session: CustomAPISession, credentials: AuthCredentials
-) -> requests.Response:
-    return session.post("register", json=credentials)
+class AuthAPIClient:
+    def __init__(self, session: CustomAPISession):
+        self.session = session
 
+    def register_user(self, credentials: AuthCredentials) -> requests.Response:
+        return self.session.post("register", json=credentials)
 
-def login_user(
-    session: CustomAPISession, credentials: AuthCredentials
-) -> requests.Response:
-    return session.post("login", json=credentials)
+    def login_user(self, credentials: AuthCredentials) -> requests.Response:
+        return self.session.post("login", json=credentials)
 
+    def create_auth_session(self) -> AuthSession:
+        credentials = get_configured_credentials()
+        login_response = self.login_user(credentials)
 
-def create_auth_session(session: CustomAPISession) -> AuthSession:
-    credentials = get_configured_credentials()
-    login_response = login_user(session, credentials)
+        if not login_response.ok:
+            raise RuntimeError(
+                f"Login failed for configured USERNAME/PASSWORD: "
+                f"{login_response.status_code} {login_response.text}"
+            )
 
-    if not login_response.ok:
-        raise RuntimeError(
-            f"Login failed for configured USERNAME/PASSWORD: "
-            f"{login_response.status_code} {login_response.text}"
-        )
+        body: LoginResponseBody = login_response.json()
 
-    body: LoginResponseBody = login_response.json()
-
-    return {
-        "credentials": credentials,
-        "token": body["token"],
-    }
+        return {
+            "credentials": credentials,
+            "token": body["token"],
+        }

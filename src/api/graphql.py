@@ -1,46 +1,41 @@
 import random
+import re
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TypeVar, Union, TypedDict
+from http import HTTPStatus
+from typing import Any, Dict, List, Optional, TypedDict
+import allure
 import requests
 
 from src.api.base import CustomAPISession
 from src.config.env import env
+from src.utils.assertions import (
+    assert_json_content_type,
+    assert_key_in_dict,
+    assert_not_empty,
+    assert_status_code,
+    read_graphql_data,
+)
 
+SCRIBE_USERNAME_PREFIX = "myth_fr_scribe"
 
-GraphqlVariables = TypedDict[str, Any]
+# Pattern to validate JWT tokens inside helpers
+JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
-
-class GraphqlError(TypedDict):
-    message: str
-    path: Optional[List[Union[int, str]]]
-    extensions: Optional[Dict[str, Any]]
-
-
-TData = TypeVar("TData")
-
-
-class GraphqlResponseBody(TypedDict):
-    data: Optional[Any]
-    errors: Optional[List[GraphqlError]]
+# Types and DTOs
+GraphqlVariables = Dict[str, Any]
 
 
 @dataclass
 class GraphqlRequestOptions:
     operation_name: str
     query: str
-    token: Optional[str] = None
     variables: Optional[GraphqlVariables] = None
 
 
 class GraphqlScribeCredentials(TypedDict):
     password: str
     username: str
-
-
-class GraphqlAuthPayload(TypedDict):
-    message: str
-    token: str
 
 
 class SoulSummary(TypedDict):
@@ -59,16 +54,12 @@ class SoulInput(TypedDict):
     weight: int
 
 
-SoulMutationPayload = SoulDetails
-
-SCRIBE_USERNAME_PREFIX = "pw_scribe"
-
-
-# Helpers
+class GraphqlScribeSession(TypedDict):
+    credentials: GraphqlScribeCredentials
+    token: str
 
 
-def _create_auth_headers(token: str) -> Dict[str, str]:
-    return {"Authorization": f"Bearer {token}"}
+# Core GraphQL Helpers
 
 
 def _create_graphql_body(options: GraphqlRequestOptions) -> Dict[str, Any]:
@@ -84,12 +75,9 @@ def _create_graphql_body(options: GraphqlRequestOptions) -> Dict[str, Any]:
 def post_graphql(
     session: CustomAPISession, options: GraphqlRequestOptions
 ) -> requests.Response:
-    headers = _create_auth_headers(options.token) if options.token else None
-
     return session.post(
         url=env.graphql_url,
         json=_create_graphql_body(options),
-        headers=headers,
     )
 
 
@@ -103,6 +91,47 @@ def create_unique_scribe_credentials() -> GraphqlScribeCredentials:
     return {
         "username": f"{SCRIBE_USERNAME_PREFIX}_{_create_username_suffix()}",
         "password": "playwright123",
+    }
+
+
+def create_scribe_session(session: CustomAPISession) -> GraphqlScribeSession:
+    """
+    Helper to automate registration and login flow for a unique GraphQL scribe.
+    """
+
+    credentials = create_unique_scribe_credentials()
+
+    with allure.step("Register a GraphQL scribe"):
+        register_response = register_scribe(session, credentials)
+        assert_status_code(register_response, HTTPStatus.OK)
+        assert_json_content_type(register_response)
+
+        register_data = read_graphql_data(register_response)
+        assert_key_in_dict(register_data, "registerScribe")
+        assert_not_empty(
+            register_data["registerScribe"].strip(), "registerScribe message"
+        )
+
+    with allure.step("Log in as the GraphQL scribe"):
+        login_response = login_scribe(session, credentials)
+        assert_status_code(login_response, HTTPStatus.OK)
+        assert_json_content_type(login_response)
+
+        login_data = read_graphql_data(login_response)
+        assert_key_in_dict(login_data, "loginScribe")
+
+        login_payload = login_data["loginScribe"]
+        assert_key_in_dict(login_payload, "token")
+        assert_key_in_dict(login_payload, "message")
+
+        assert_not_empty(login_payload["message"].strip(), "login message")
+        assert JWT_PATTERN.match(
+            login_payload["token"]
+        ), f"Token '{login_payload['token']}' is not a valid JWT format"
+
+    return {
+        "credentials": credentials,
+        "token": login_payload["token"],
     }
 
 
@@ -178,9 +207,7 @@ def login_scribe(
     return post_graphql(session, options)
 
 
-def get_current_scribe(
-    session: CustomAPISession, token: str
-) -> requests.Response:
+def get_current_scribe(session: CustomAPISession) -> requests.Response:
     options = GraphqlRequestOptions(
         operation_name="CurrentScribe",
         query="""
@@ -188,13 +215,12 @@ def get_current_scribe(
             currentScribe
           }
         """,
-        token=token,
     )
     return post_graphql(session, options)
 
 
 def create_soul(
-    session: CustomAPISession, token: str, soul_input: SoulInput
+    session: CustomAPISession, soul_input: SoulInput
 ) -> requests.Response:
     options = GraphqlRequestOptions(
         operation_name="CreateSoul",
@@ -209,14 +235,13 @@ def create_soul(
             }
           }
         """,
-        token=token,
         variables={"input": soul_input},
     )
     return post_graphql(session, options)
 
 
 def patch_soul_deeds(
-    session: CustomAPISession, token: str, id_str: str, deed: str
+    session: CustomAPISession, id_str: str, deed: str
 ) -> requests.Response:
     options = GraphqlRequestOptions(
         operation_name="PatchSoulDeeds",
@@ -231,15 +256,12 @@ def patch_soul_deeds(
             }
           }
         """,
-        token=token,
         variables={"id": id_str, "deed": deed},
     )
     return post_graphql(session, options)
 
 
-def banish_soul(
-    session: CustomAPISession, token: str, id_str: str
-) -> requests.Response:
+def banish_soul(session: CustomAPISession, id_str: str) -> requests.Response:
     options = GraphqlRequestOptions(
         operation_name="BanishSoul",
         query="""
@@ -247,7 +269,6 @@ def banish_soul(
             banishSoul(id: $id)
           }
         """,
-        token=token,
         variables={"id": id_str},
     )
     return post_graphql(session, options)

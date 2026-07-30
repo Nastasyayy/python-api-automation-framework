@@ -13,6 +13,7 @@ def log_allure_http(
     """
     Logs the complete absolute URL, request payload, and server response directly into Allure steps.
     """
+
     payload = kwargs.get("json") or kwargs.get("data") or ""
     payload_str = (
         json.dumps(payload, indent=2, ensure_ascii=False) if payload else ""

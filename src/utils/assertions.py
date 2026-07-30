@@ -31,9 +31,43 @@ def assert_key_in_dict(target_dict: Dict[str, Any], key: str) -> None:
     )
 
 
-@allure.step("Assert value for '{value_name}' is not empty")
+@allure.step("Assert value is not empty for: '{value_name}'")
 def assert_not_empty(value: Any, value_name: str) -> None:
     """Universal helper to verify that a value (string, list, dict) is not empty/null."""
     assert (
         value
     ), f"Validation failed: '{value_name}' is empty, null, or evaluated to False"
+
+
+@allure.step("Assert response header content-type contains 'application/json'")
+def assert_json_content_type(response: Any) -> None:
+    """Verifies that the server returns a JSON content-type header."""
+    content_type = response.headers.get("content-type", "")
+    assert (
+        "application/json" in content_type
+    ), f"Expected content-type to contain 'application/json', got '{content_type}'"
+
+
+@allure.step("Parse and validate GraphQL response structure")
+def read_graphql_data(response: Any) -> Dict[str, Any]:
+    """Helper to parse GraphQL body, check for errors, and extract data."""
+    body = response.json()
+
+    assert (
+        "errors" not in body
+    ), f"GraphQL payload returned internal errors: {body.get('errors')}"
+    assert (
+        "data" in body
+    ), f"GraphQL response structure is missing the 'data' field: {body}"
+
+    if not body["data"]:
+        raise ValueError(f"GraphQL data block is null or empty: {body}")
+
+    return body["data"]
+
+
+@allure.step("Assert '{object_name}' value is equal to expected one")
+def assert_values_are_equal(actual_value, expected_value, object_name):
+    assert (
+        actual_value == expected_value
+    ), f"Expected '{object_name}' value is equal to expected, but it is not."
