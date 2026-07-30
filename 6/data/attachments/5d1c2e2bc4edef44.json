@@ -1,0 +1,8 @@
+{
+  "operationName": "LoginScribe",
+  "query": "\n          mutation LoginScribe($username: String!, $password: String!) {\n            loginScribe(username: $username, password: $password) {\n              token\n              message\n            }\n          }\n        ",
+  "variables": {
+    "username": "myth_fr_scribe_1785401419415_009085",
+    "password": "playwright123"
+  }
+}

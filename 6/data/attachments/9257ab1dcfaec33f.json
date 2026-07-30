@@ -1,0 +1,5 @@
+{
+  "operationName": "CurrentScribe",
+  "query": "\n          query CurrentScribe {\n            currentScribe\n          }\n        ",
+  "variables": null
+}

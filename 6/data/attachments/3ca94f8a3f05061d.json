@@ -1,0 +1,8 @@
+{
+  "operationName": "RegisterScribe",
+  "query": "\n          mutation RegisterScribe($username: String!, $password: String!) {\n            registerScribe(username: $username, password: $password)\n          }\n        ",
+  "variables": {
+    "username": "myth_fr_scribe_1785401419878_606208",
+    "password": "playwright123"
+  }
+}

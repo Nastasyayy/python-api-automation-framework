@@ -1,0 +1,8 @@
+{
+  "operationName": "PatchSoulDeeds",
+  "query": "\n          mutation PatchSoulDeeds($id: ID!, $deed: String!) {\n            patchSoulDeeds(id: $id, deed: $deed) {\n              id\n              name\n              deeds\n              status\n              weight\n            }\n          }\n        ",
+  "variables": {
+    "id": "27",
+    "deed": "Documented in Pytest 1785401420216"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "operationName": "GetSoul",
+  "query": "\n          query GetSoul($id: ID!) {\n            getSoul(id: $id) {\n              id\n              name\n              deeds\n              status\n              weight\n            }\n          }\n        ",
+  "variables": {
+    "id": "20"
+  }
+}

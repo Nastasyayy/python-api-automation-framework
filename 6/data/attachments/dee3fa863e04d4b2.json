@@ -1,0 +1,7 @@
+{
+  "operationName": "BanishSoul",
+  "query": "\n          mutation BanishSoul($id: ID!) {\n            banishSoul(id: $id)\n          }\n        ",
+  "variables": {
+    "id": "27"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "operationName": "AllSouls",
+  "query": "\n          query AllSouls($limit: Int!) {\n            allSouls(limit: $limit) {\n              id\n              name\n              weight\n            }\n          }\n        ",
+  "variables": {
+    "limit": 3
+  }
+}

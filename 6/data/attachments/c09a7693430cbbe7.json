@@ -1,0 +1,10 @@
+{
+  "operationName": "CreateSoul",
+  "query": "\n          mutation CreateSoul($input: SoulInput!) {\n            createSoul(input: $input) {\n              id\n              name\n              deeds\n              status\n              weight\n            }\n          }\n        ",
+  "variables": {
+    "input": {
+      "name": "Pytest Soul 1785401420216",
+      "weight": 50
+    }
+  }
+}

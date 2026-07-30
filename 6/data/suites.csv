@@ -1,0 +1,20 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+    Verify that a configured user can log in successfully and receive an auth token.
+    ","172","test_login_user_success","tests","2026-07-30","passed","2026-07-30","","test_auth","",""
+"
+    Verify registration, authentication, and token verification queries for scribes.
+    ","128","test_graphql_scribe_session_flows_work_together","tests","2026-07-30","passed","2026-07-30","","test_graphql","",""
+"Verify that a user sign up in successfully.","462","test_signup_user_success","tests","2026-07-30","passed","2026-07-30","","test_auth","",""
+"
+    Verify that a user signup fails if credentials are already taken.
+    ","326","test_signup_user_unsuccessful","tests","2026-07-30","passed","2026-07-30","","test_auth","",""
+"
+    Verify that the mythology endpoint is accessible and returns a 200 OK status code.
+    ","121","test_get_mythology_list_success","tests","2026-07-30","passed","2026-07-30","","test_mythology","",""
+"
+    Verify that any anonymous client can query allSouls lists and read soul details.
+    ","243","test_graphql_public_queries_return_soul_data","tests","2026-07-30","passed","2026-07-30","","test_graphql","",""
+"
+    Verify creating, amending, and banishing souls as an authorized scribe.
+    ","629","test_graphql_authenticated_soul_lifecycle","tests","2026-07-30","passed","2026-07-30","","test_graphql","",""
